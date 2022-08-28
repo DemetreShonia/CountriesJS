@@ -4,6 +4,7 @@ const btn = document.querySelector('.btn-country');
 const countriesContainer = document.querySelector('.countries');
 
 const limitText = document.getElementById('01');
+const limitText2 = document.getElementById('02');
 
 ///////////////////////////////////////
 const renderCountry = function (data, className = '') {
@@ -26,7 +27,7 @@ const renderCountry = function (data, className = '') {
   countriesContainer.style.opacity = 1;
 };
 
-const getCountryAndNeighbourData = function (country) {
+const getCountryAndNeighbourData = function (country, withNeighbour) {
   // old school
   const request = new XMLHttpRequest();
 
@@ -38,49 +39,24 @@ const getCountryAndNeighbourData = function (country) {
     console.log(data);
     renderCountry(data, 'Your Country');
     const neighbour = data.borders?.[0];
-    if (!neighbour) return;
 
-    const request2 = new XMLHttpRequest();
+    if (!neighbour || !withNeighbour) return;
 
-    request2.open('GET', `https://restcountries.com/v2/alpha/${neighbour}`);
+    const getNeighbours = async function () {
+      const borders = [...data.borders];
 
-    request2.send();
-    request2.addEventListener('load', function () {
-      const data2 = JSON.parse(this.responseText);
-      console.log(data2);
-      renderCountry(data2, 'neighbour');
-    });
+      for (let i = 0; i < borders.length; i++) {
+        let nei = borders[i];
+
+        const res = await fetch(`https://restcountries.com/v2/alpha/${nei}`);
+        const data = await res.json();
+        renderCountry(data, 'neighbour');
+      }
+    };
+
+    getNeighbours();
   });
 };
-
-// getCountryAndNeighbourData('france');
-
-const getCountryData = function (country) {
-  fetch(`https://restcountries.com/v2/name/${country}`)
-    .then(function (response) {
-      return response.json();
-    })
-    .then(function (data) {
-      console.log(data);
-    });
-};
-
-// getCountryData('portugal');
-
-// const lotteryPromise = new Promise(function (resolveF, rejectF) {
-//   // this function is called executor
-//   console.log('lotter draw is happening!');
-//   setTimeout(() => {
-//     if (Math.random() >= 0.5) {
-//       resolveF('YOU WIN!');
-//     } else {
-//       rejectF('You lost your money!');
-//     }
-//   }, 2000);
-// });
-// lotteryPromise.then(res => console.log(res)).catch(err => console.error(err));
-
-// console.log(1);
 
 const getPosition = function () {
   return new Promise(function (resolve, reject) {
@@ -90,7 +66,11 @@ const getPosition = function () {
 
 getPosition().then(pos => console.log(pos));
 
+let clicked = false;
 const whereAmI = function () {
+  if (clicked) return;
+  clicked = true;
+
   getPosition()
     .then(pos => {
       const { latitude: lat, longitude: lng } = pos.coords;
@@ -105,7 +85,7 @@ const whereAmI = function () {
     .then(data => {
       console.log(data);
 
-      getCountryAndNeighbourData(data.country);
+      getCountryAndNeighbourData(data.country, true);
 
       return fetch(`https://restcountries.eu/rest/v2/name/${data.country}`);
     })
@@ -115,7 +95,22 @@ const whereAmI = function () {
       return res.json();
     })
     .then(data => renderCountry(data[0]))
-    .catch(err => (limitText.innerHTML = `💥 Sorry, free API limit 💥`));
+    .catch(err => {
+      limitText.innerHTML = `💥 Sorry, free API limit 💥`;
+      limitText2.innerHTML = `💥 Thats why I'm showing my country 💥`;
+      getCountryAndNeighbourData('sakartvelo', true);
+    });
 };
 
 btn.addEventListener('click', whereAmI);
+
+const f = async function (country) {
+  // await PROMISE
+  const res = await fetch(`https://restcountries.eu/rest/v2/name/${country}`);
+  fetch(`https://restcountries.eu/rest/v2/name/${country}`).then(
+    res => console.log(res) // this two are the same
+  );
+  const data = await res.json();
+};
+f('portugal'); // this will be called the last! after everythin
+console.log('first');

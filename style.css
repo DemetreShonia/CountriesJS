@@ -99,10 +99,11 @@ body {
 }
 
 .btn-country {
-  border: none;
+  border: None;
   font-size: 2rem;
-  padding: 2rem 5rem;
-  border-radius: 0.7rem;
+  padding: 2rem 10rem;
+  border-radius: 1.2rem;
+  margin-top: 10px;
   color: white;
   background-color: orangered;
   cursor: pointer;
