@@ -50,7 +50,7 @@ const getCountryAndNeighbourData = function (country) {
   });
 };
 
-getCountryAndNeighbourData('france');
+// getCountryAndNeighbourData('france');
 
 const getCountryData = function (country) {
   fetch(`https://restcountries.com/v2/name/${country}`)
@@ -62,7 +62,7 @@ const getCountryData = function (country) {
     });
 };
 
-getCountryData('portugal');
+// getCountryData('portugal');
 
 const lotteryPromise = new Promise(function (resolveF, rejectF) {
   // this function is called executor
@@ -77,9 +77,41 @@ const lotteryPromise = new Promise(function (resolveF, rejectF) {
 });
 lotteryPromise.then(res => console.log(res)).catch(err => console.error(err));
 
-navigator.geolocation.getCurrentPosition(
-  position => console.log(position),
-  err => console.error(err)
-);
-
 console.log(1);
+
+const getPosition = function () {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+};
+
+getPosition().then(pos => console.log(pos));
+
+const whereAmI = function () {
+  getPosition()
+    .then(pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+
+      return fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`);
+    })
+    .then(res => {
+      if (!res.ok) throw new Error(`Problem with geocoding ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      console.log(data);
+
+      getCountryAndNeighbourData(data.country);
+
+      return fetch(`https://restcountries.eu/rest/v2/name/${data.country}`);
+    })
+    .then(res => {
+      if (!res.ok) throw new Error(`Country not found (${res.status})`);
+
+      return res.json();
+    })
+    .then(data => renderCountry(data[0]))
+    .catch(err => console.error(`${err.message} 💥`));
+};
+
+btn.addEventListener('click', whereAmI);
