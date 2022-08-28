@@ -47,12 +47,34 @@ const getCountryAndNeighbourData = function (country, withNeighbour) {
     const getNeighbours = async function () {
       const borders = [...data.borders];
 
-      for (let i = 0; i < borders.length; i++) {
-        let nei = borders[i];
+      const goParallel = true;
 
-        const res = await fetch(`https://restcountries.com/v2/alpha/${nei}`);
-        const data = await res.json();
-        renderCountry(data, 'neighbour');
+      if (goParallel) {
+        const promiseList = [];
+        for (let i = 0; i < borders.length; i++) {
+          let nei = borders[i];
+
+          let a = fetch(`https://restcountries.com/v2/alpha/${nei}`).then(
+            res => {
+              if (!res.ok) throw new Error('RES NOT OK!');
+              return res.json();
+            }
+          );
+          promiseList.push(a);
+        }
+
+        print(promiseList);
+        const pr = await Promise.all(promiseList);
+        pr.forEach(t => renderCountry(t, 'neighbour'));
+      } else {
+        // non paralel
+        for (let i = 0; i < borders.length; i++) {
+          let nei = borders[i];
+
+          const res = await fetch(`https://restcountries.com/v2/alpha/${nei}`);
+          const data = await res.json();
+          renderCountry(data, 'neighbour');
+        }
       }
     };
 
@@ -77,8 +99,11 @@ const whereAmI = function () {
     .then(pos => {
       const { latitude: lat, longitude: lng } = pos.coords;
 
-      return fetch(`https://geocode.xyz/${lat},${lng}?json=1`);
-      console.log(`https://geocode.xyz/${lat},${lng}?json=1`);
+      try {
+        return fetch(`https://geocode.xyz/${lat},${lng}?json=1`);
+      } catch (err) {
+        console.error('Error while fetching data!');
+      }
     })
     .then(res => {
       if (!res.ok) throw new Error(`Problem with geocoding ${res.status}`);
@@ -107,12 +132,16 @@ const whereAmI = function () {
 btn.addEventListener('click', whereAmI);
 
 const f = async function (country) {
+  try {
+    const res = await fetch(`https://restcountries.eu/rest/v2/name/${country}`);
+    fetch(`https://restcountries.eu/rest/v2/name/${country}`).then(
+      res => console.log(res) // this two are the same
+    );
+    const data = await res.json();
+  } catch (err) {
+    console.error(`Catch error: ${err}`);
+  }
   // await PROMISE
-  const res = await fetch(`https://restcountries.eu/rest/v2/name/${country}`);
-  fetch(`https://restcountries.eu/rest/v2/name/${country}`).then(
-    res => console.log(res) // this two are the same
-  );
-  const data = await res.json();
 };
 f('portugal'); // this will be called the last! after everythin
 console.log('first');
