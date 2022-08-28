@@ -63,3 +63,23 @@ const getCountryData = function (country) {
 };
 
 getCountryData('portugal');
+
+const lotteryPromise = new Promise(function (resolveF, rejectF) {
+  // this function is called executor
+  console.log('lotter draw is happening!');
+  setTimeout(() => {
+    if (Math.random() >= 0.5) {
+      resolveF('YOU WIN!');
+    } else {
+      rejectF('You lost your money!');
+    }
+  }, 2000);
+});
+lotteryPromise.then(res => console.log(res)).catch(err => console.error(err));
+
+navigator.geolocation.getCurrentPosition(
+  position => console.log(position),
+  err => console.error(err)
+);
+
+console.log(1);
