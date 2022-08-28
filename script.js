@@ -115,7 +115,7 @@ const whereAmI = function () {
       return res.json();
     })
     .then(data => renderCountry(data[0]))
-    .catch(err => (limitText.innerHTML = `💥 Error, free API limit 💥`));
+    .catch(err => (limitText.innerHTML = `💥 Sorry, free API limit 💥`));
 };
 
 btn.addEventListener('click', whereAmI);
