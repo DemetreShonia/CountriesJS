@@ -3,6 +3,8 @@
 const btn = document.querySelector('.btn-country');
 const countriesContainer = document.querySelector('.countries');
 
+const limitText = document.getElementById('01');
+
 ///////////////////////////////////////
 const renderCountry = function (data, className = '') {
   const html = `
@@ -23,6 +25,7 @@ const renderCountry = function (data, className = '') {
   countriesContainer.insertAdjacentHTML('beforeend', html);
   countriesContainer.style.opacity = 1;
 };
+
 const getCountryAndNeighbourData = function (country) {
   // old school
   const request = new XMLHttpRequest();
@@ -33,7 +36,7 @@ const getCountryAndNeighbourData = function (country) {
   request.addEventListener('load', function () {
     const [data] = JSON.parse(this.responseText);
     console.log(data);
-    renderCountry(data, 'neighbour');
+    renderCountry(data, 'Your Country');
     const neighbour = data.borders?.[0];
     if (!neighbour) return;
 
@@ -64,20 +67,20 @@ const getCountryData = function (country) {
 
 // getCountryData('portugal');
 
-const lotteryPromise = new Promise(function (resolveF, rejectF) {
-  // this function is called executor
-  console.log('lotter draw is happening!');
-  setTimeout(() => {
-    if (Math.random() >= 0.5) {
-      resolveF('YOU WIN!');
-    } else {
-      rejectF('You lost your money!');
-    }
-  }, 2000);
-});
-lotteryPromise.then(res => console.log(res)).catch(err => console.error(err));
+// const lotteryPromise = new Promise(function (resolveF, rejectF) {
+//   // this function is called executor
+//   console.log('lotter draw is happening!');
+//   setTimeout(() => {
+//     if (Math.random() >= 0.5) {
+//       resolveF('YOU WIN!');
+//     } else {
+//       rejectF('You lost your money!');
+//     }
+//   }, 2000);
+// });
+// lotteryPromise.then(res => console.log(res)).catch(err => console.error(err));
 
-console.log(1);
+// console.log(1);
 
 const getPosition = function () {
   return new Promise(function (resolve, reject) {
@@ -92,7 +95,8 @@ const whereAmI = function () {
     .then(pos => {
       const { latitude: lat, longitude: lng } = pos.coords;
 
-      return fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`);
+      return fetch(`https://geocode.xyz/${lat},${lng}?json=1`);
+      console.log(`https://geocode.xyz/${lat},${lng}?json=1`);
     })
     .then(res => {
       if (!res.ok) throw new Error(`Problem with geocoding ${res.status}`);
@@ -111,7 +115,7 @@ const whereAmI = function () {
       return res.json();
     })
     .then(data => renderCountry(data[0]))
-    .catch(err => console.error(`${err.message} 💥`));
+    .catch(err => (limitText.innerHTML = `💥 Error, free API limit 💥`));
 };
 
 btn.addEventListener('click', whereAmI);
